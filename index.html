@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FluidsBeach Leaderboard</title>
+  <title>FluidsBench Leaderboard</title>
 
   <!-- Bootstrap 5 (local) -->
   <link rel="stylesheet" href="vendor/bootstrap.min.css" />
@@ -115,7 +115,9 @@
 
     /* ── Hero / Description ───────────────────────────── */
     .hero-card {
-      background: linear-gradient(135deg, var(--kaggle-dark) 0%, #162447 100%);
+      background:
+        linear-gradient(135deg, rgba(26,26,46,0.82) 0%, rgba(22,36,71,0.78) 100%),
+        url('https://caemldatasets.org/assets/img/autocfd2.png') center/cover no-repeat;
       color: #fff;
       border-radius: 10px;
       padding: 1.8rem 2rem;
@@ -353,7 +355,7 @@
 
 <!-- ── Top Navigation ──────────────────────────────────── -->
 <nav class="topnav">
-  <a class="brand" href="#">⚡ FluidsBeach</a>
+  <a class="brand" href="#">⚡ FluidsBench</a>
   <div class="nav-links">
     <a href="#" class="active">Leaderboard</a>
     <a href="#">Datasets</a>
@@ -466,7 +468,7 @@
 
     <!-- Hero -->
     <div class="hero-card">
-      <h1>⚡ FluidsBeach Leaderboard</h1>
+      <h1>⚡ FluidsBench Leaderboard</h1>
       <div class="mb-2">
         <span class="badge-tag">CFD</span>
         <span class="badge-tag">Surrogate Models</span>
@@ -474,7 +476,7 @@
         <span class="badge-tag">Open Benchmark</span>
       </div>
       <p>
-        <strong>FluidsBeach</strong> is an open benchmark for evaluating machine learning surrogate models
+        <strong>FluidsBench</strong> is an open benchmark for evaluating machine learning surrogate models
         on computational fluid dynamics (CFD) tasks. It provides standardised datasets, evaluation protocols,
         and this leaderboard to enable fair, reproducible comparison of methods across diverse flow scenarios —
         from external aerodynamics to internal pipe flows.
@@ -565,7 +567,7 @@
 </div>
 
 <footer>
-  FluidsBeach Leaderboard &mdash; Datasets from
+  FluidsBench Leaderboard &mdash; Datasets from
   <a href="https://caemldatasets.org" target="_blank">CaEMLDatasets.org</a> &mdash;
   <a href="https://fluidsbench.org" target="_blank">fluidsbench.org</a>
 </footer>
