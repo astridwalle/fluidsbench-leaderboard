@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FluidsBench Leaderboard</title>
+
+  <!-- Bootstrap 5 (local) -->
+  <link rel="stylesheet" href="vendor/bootstrap.min.css" />
+  <!-- Bootstrap Icons (local) -->
+  <link rel="stylesheet" href="vendor/bootstrap-icons.min.css" />
+
+  <style>
+    /* ── Global ───────────────────────────────────────── */
+    :root {
+      --kaggle-blue: #20beff;
+      --kaggle-dark: #1a1a2e;
+      --sidebar-width: 280px;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      font-family: "Google Sans", "Segoe UI", Roboto, sans-serif;
+      color: #333;
+    }
+
+    /* ── Top Navigation ──────────────────────────────── */
+    .topnav {
+      background: var(--kaggle-dark);
+      color: #fff;
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .topnav .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--kaggle-blue);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+    }
+
+    .topnav .nav-links a {
+      color: #ccc;
+      text-decoration: none;
+      margin-left: 1.4rem;
+      font-size: 0.92rem;
+      transition: color 0.2s;
+    }
+
+    .topnav .nav-links a:hover,
+    .topnav .nav-links a.active {
+      color: var(--kaggle-blue);
+    }
+
+    /* ── Layout ──────────────────────────────────────── */
+    .page-wrapper {
+      display: flex;
+      min-height: calc(100vh - 52px);
+    }
+
+    /* ── Sidebar ─────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      padding: 1.2rem 1rem;
+      overflow-y: auto;
+    }
+
+    .sidebar .section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 0.6rem;
+      margin-top: 1.2rem;
+    }
+
+    .sidebar .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .sidebar .form-check-label {
+      font-size: 0.88rem;
+    }
+
+    .sidebar .form-check {
+      margin-bottom: 0.35rem;
+    }
+
+    .sidebar .badge-count {
+      font-size: 0.7rem;
+      background: #e8e8e8;
+      color: #555;
+      border-radius: 10px;
+      padding: 1px 7px;
+      margin-left: 4px;
+    }
+
+    /* ── Main Content ─────────────────────────────────── */
+    .main-content {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero / Description ───────────────────────────── */
+    .hero-card {
+      background:
+        linear-gradient(135deg, rgba(26,26,46,0.82) 0%, rgba(22,36,71,0.78) 100%),
+        url('https://caemldatasets.org/assets/img/autocfd2.png') center/cover no-repeat;
+      color: #fff;
+      border-radius: 10px;
+      padding: 1.8rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-card h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--kaggle-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-card p {
+      font-size: 0.93rem;
+      color: #c8d6e5;
+      max-width: 760px;
+      line-height: 1.65;
+      margin-bottom: 0;
+    }
+
+    .hero-card .badge-tag {
+      background: rgba(32,190,255,0.15);
+      border: 1px solid rgba(32,190,255,0.35);
+      color: var(--kaggle-blue);
+      font-size: 0.75rem;
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin-right: 5px;
+    }
+
+    /* ── Stats Strip ──────────────────────────────────── */
+    .stats-strip {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 0.9rem 1.3rem;
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .stat-card .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--kaggle-dark);
+    }
+
+    .stat-card .stat-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Section Header ───────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    /* ── Table ────────────────────────────────────────── */
+    .leaderboard-table-wrap {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .leaderboard-table-wrap table {
+      margin-bottom: 0;
+      font-size: 0.88rem;
+    }
+
+    .leaderboard-table-wrap thead th {
+      background: #f2f4f8;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #555;
+      border-bottom: 2px solid #dde1e7;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .leaderboard-table-wrap thead th:hover {
+      background: #e8ebf0;
+    }
+
+    .leaderboard-table-wrap thead th .sort-icon {
+      margin-left: 4px;
+      opacity: 0.4;
+      font-size: 0.75rem;
+    }
+
+    .leaderboard-table-wrap thead th.sort-asc .sort-icon,
+    .leaderboard-table-wrap thead th.sort-desc .sort-icon {
+      opacity: 1;
+    }
+
+    .leaderboard-table-wrap tbody tr:hover {
+      background: #f5f8ff;
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .rank-1 { background: #ffd700; color: #5a4000; }
+    .rank-2 { background: #c0c0c0; color: #333; }
+    .rank-3 { background: #cd7f32; color: #fff; }
+    .rank-other { background: #eef0f5; color: #555; }
+
+    .model-type-badge {
+      font-size: 0.72rem;
+      border-radius: 12px;
+      padding: 2px 9px;
+      font-weight: 600;
+    }
+
+    .badge-gnn        { background: #e3f2fd; color: #1565c0; }
+    .badge-transolver { background: #f3e5f5; color: #6a1b9a; }
+    .badge-pointnet   { background: #e8f5e9; color: #2e7d32; }
+    .badge-cnn        { background: #fff3e0; color: #e65100; }
+    .badge-fno        { background: #fce4ec; color: #880e4f; }
+
+    .metric-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #20beff;
+      min-width: 4px;
+    }
+
+    .bar-r2 { background: #4caf50; }
+
+    /* ── Charts ───────────────────────────────────────── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    .chart-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+    }
+
+    .chart-card h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 0.8rem;
+    }
+
+    /* ── Search / Filter bar ──────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      margin-bottom: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar input[type="text"] {
+      font-size: 0.88rem;
+      border-radius: 20px;
+      padding: 0.35rem 0.9rem;
+      border: 1px solid #ccc;
+      outline: none;
+      min-width: 200px;
+    }
+
+    .filter-bar input[type="text"]:focus {
+      border-color: var(--kaggle-blue);
+    }
+
+    .btn-reset {
+      font-size: 0.82rem;
+      border-radius: 20px;
+      padding: 0.35rem 1rem;
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #aaa;
+      padding: 1.5rem;
+      border-top: 1px solid #e8e8e8;
+      margin-top: 1rem;
+    }
+
+    footer a { color: #888; }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Navigation ──────────────────────────────────── -->
+<nav class="topnav">
+  <a class="brand" href="#">⚡ FluidsBench</a>
+  <div class="nav-links">
+    <a href="#" class="active">Leaderboard</a>
+    <a href="#">Datasets</a>
+    <a href="#">Submit</a>
+    <a href="#">Paper</a>
+    <a href="#">About</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- ── Sidebar ──────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="section-title">Dataset</div>
+    <div id="dataset-filters">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dataset" id="ds-all" value="all" checked />
+        <label class="form-check-label" for="ds-all">All datasets</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dataset" id="ds-ahmed" value="AhmedBody" />
+        <label class="form-check-label" for="ds-ahmed">
+          AhmedBody <span class="badge-count">6</span>
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dataset" id="ds-drivaer" value="DrivAer" />
+        <label class="form-check-label" for="ds-drivaer">
+          DrivAer <span class="badge-count">4</span>
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dataset" id="ds-naca" value="NACA" />
+        <label class="form-check-label" for="ds-naca">
+          NACA Airfoil <span class="badge-count">5</span>
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dataset" id="ds-cavity" value="LidCavity" />
+        <label class="form-check-label" for="ds-cavity">
+          Lid-Driven Cavity <span class="badge-count">3</span>
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dataset" id="ds-cylinder" value="Cylinder" />
+        <label class="form-check-label" for="ds-cylinder">
+          Cylinder Flow <span class="badge-count">3</span>
+        </label>
+      </div>
+
+      <div class="section-title">Model Type</div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="mt-gnn" value="GNN" checked />
+        <label class="form-check-label" for="mt-gnn">GNN</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="mt-transolver" value="Transolver" checked />
+        <label class="form-check-label" for="mt-transolver">Transolver</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="mt-pointnet" value="PointNet++" checked />
+        <label class="form-check-label" for="mt-pointnet">PointNet++</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="mt-cnn" value="CNN" checked />
+        <label class="form-check-label" for="mt-cnn">CNN</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="mt-fno" value="FNO" checked />
+        <label class="form-check-label" for="mt-fno">FNO</label>
+      </div>
+
+      <div class="section-title">Target Variable</div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="tv-pressure" value="pressure" checked />
+        <label class="form-check-label" for="tv-pressure">Pressure</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="tv-velocity" value="velocity" checked />
+        <label class="form-check-label" for="tv-velocity">Velocity</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="tv-wss" value="wss" checked />
+        <label class="form-check-label" for="tv-wss">Wall Shear Stress</label>
+      </div>
+
+      <div class="section-title">Year</div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="yr-2024" value="2024" checked />
+        <label class="form-check-label" for="yr-2024">2024</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="yr-2023" value="2023" checked />
+        <label class="form-check-label" for="yr-2023">2023</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="yr-2022" value="2022" checked />
+        <label class="form-check-label" for="yr-2022">2022</label>
+      </div>
+    </div>
+
+    <hr class="my-3" />
+    <button class="btn btn-sm btn-outline-secondary w-100 btn-reset" id="reset-filters">
+      <i class="bi bi-arrow-counterclockwise"></i> Reset Filters
+    </button>
+  </aside>
+
+  <!-- ── Main Content ──────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Hero -->
+    <div class="hero-card">
+      <h1>⚡ FluidsBench Leaderboard</h1>
+      <div class="mb-2">
+        <span class="badge-tag">CFD</span>
+        <span class="badge-tag">Surrogate Models</span>
+        <span class="badge-tag">Geometric Deep Learning</span>
+        <span class="badge-tag">Open Benchmark</span>
+      </div>
+      <p>
+        <strong>FluidsBench</strong> is an open benchmark for evaluating machine learning surrogate models
+        on computational fluid dynamics (CFD) tasks. It provides standardised datasets, evaluation protocols,
+        and this leaderboard to enable fair, reproducible comparison of methods across diverse flow scenarios —
+        from external aerodynamics to internal pipe flows.
+        Datasets are sourced from <a href="https://caemldatasets.org" target="_blank" style="color:var(--kaggle-blue)">CaEMLDatasets.org</a>.
+      </p>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-submissions">21</div>
+        <div class="stat-label">Submissions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Datasets</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Model Types</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Target Variables</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="section-header">
+      <h2><i class="bi bi-graph-up-arrow me-1"></i>Performance Trends</h2>
+      <small class="text-muted">Filtered by current selection</small>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>L1 Error by Model Type (per dataset)</h3>
+        <canvas id="chartL1" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>R² Score by Model Type (per dataset)</h3>
+        <canvas id="chartR2" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>L1 Error over Training Epochs</h3>
+        <canvas id="chartEpoch" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Inference Time vs L1 Error</h3>
+        <canvas id="chartScatter" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Leaderboard Table -->
+    <div class="section-header">
+      <h2><i class="bi bi-table me-1"></i>Leaderboard</h2>
+    </div>
+    <div class="filter-bar">
+      <i class="bi bi-search text-muted"></i>
+      <input type="text" id="table-search" placeholder="Search model name…" />
+      <select class="form-select form-select-sm" id="sort-metric" style="width:auto;border-radius:20px;font-size:0.85rem;">
+        <option value="l1">Sort by L1 ↑</option>
+        <option value="r2">Sort by R² ↓</option>
+        <option value="rank">Sort by Rank</option>
+      </select>
+    </div>
+    <div class="leaderboard-table-wrap">
+      <table class="table table-hover" id="leaderboard-table">
+        <thead>
+          <tr>
+            <th data-col="rank">Rank <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="model">Model <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="type">Type <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="dataset">Dataset <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="target">Target <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="l1">L1 Error ↓ <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="r2">R² Score ↑ <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="params">Params <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="year">Year <i class="bi bi-chevron-expand sort-icon"></i></th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+    <p id="no-results" class="text-center text-muted py-3" style="display:none;">
+      No entries match the current filters.
+    </p>
+
+  </main>
+</div>
+
+<footer>
+  FluidsBench Leaderboard &mdash; Datasets from
+  <a href="https://caemldatasets.org" target="_blank">CaEMLDatasets.org</a> &mdash;
+  <a href="https://fluidsbench.org" target="_blank">fluidsbench.org</a>
+</footer>
+
+<!-- Chart.js (local) -->
+<script src="vendor/chart.umd.min.js"></script>
+<!-- Bootstrap JS (local) -->
+<script src="vendor/bootstrap.bundle.min.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════════════
+const ALL_ENTRIES = [
+  // AhmedBody
+  { model:"GraphSAGE-UNet",  type:"GNN",        dataset:"AhmedBody",  target:"pressure", l1:0.0218, r2:0.961, params:"4.2M",  year:2024 },
+  { model:"Transolver-B",    type:"Transolver",  dataset:"AhmedBody",  target:"pressure", l1:0.0142, r2:0.978, params:"18.1M", year:2024 },
+  { model:"PointNet++-Deep", type:"PointNet++",  dataset:"AhmedBody",  target:"pressure", l1:0.0305, r2:0.942, params:"7.8M",  year:2023 },
+  { model:"MeshGraphNet",    type:"GNN",        dataset:"AhmedBody",  target:"velocity", l1:0.0188, r2:0.970, params:"5.1M",  year:2023 },
+  { model:"FNO-2D",          type:"FNO",        dataset:"AhmedBody",  target:"velocity", l1:0.0401, r2:0.910, params:"3.6M",  year:2022 },
+  { model:"ResNet-CFD",      type:"CNN",        dataset:"AhmedBody",  target:"velocity", l1:0.0512, r2:0.889, params:"11.4M", year:2022 },
+
+  // DrivAer
+  { model:"Transolver-L",    type:"Transolver",  dataset:"DrivAer",    target:"pressure", l1:0.0109, r2:0.984, params:"31.5M", year:2024 },
+  { model:"GNN-Attention",   type:"GNN",        dataset:"DrivAer",    target:"pressure", l1:0.0231, r2:0.959, params:"6.3M",  year:2024 },
+  { model:"PointNet++-Seg",  type:"PointNet++",  dataset:"DrivAer",    target:"wss",      l1:0.0389, r2:0.921, params:"8.9M",  year:2023 },
+  { model:"UNet-CFD",        type:"CNN",        dataset:"DrivAer",    target:"wss",      l1:0.0478, r2:0.898, params:"13.2M", year:2022 },
+
+  // NACA Airfoil
+  { model:"PhysGNN",         type:"GNN",        dataset:"NACA",       target:"pressure", l1:0.0177, r2:0.973, params:"5.8M",  year:2024 },
+  { model:"Transolver-S",    type:"Transolver",  dataset:"NACA",       target:"pressure", l1:0.0124, r2:0.981, params:"9.7M",  year:2024 },
+  { model:"PointNet-Flow",   type:"PointNet++",  dataset:"NACA",       target:"velocity", l1:0.0261, r2:0.953, params:"6.1M",  year:2023 },
+  { model:"FNO-Airfoil",     type:"FNO",        dataset:"NACA",       target:"velocity", l1:0.0334, r2:0.935, params:"4.2M",  year:2023 },
+  { model:"ConvNet-Aero",    type:"CNN",        dataset:"NACA",       target:"pressure", l1:0.0590, r2:0.876, params:"9.0M",  year:2022 },
+
+  // Lid-Driven Cavity
+  { model:"GNN-Cavity",      type:"GNN",        dataset:"LidCavity",  target:"velocity", l1:0.0094, r2:0.989, params:"2.1M",  year:2023 },
+  { model:"FNO-Cavity",      type:"FNO",        dataset:"LidCavity",  target:"velocity", l1:0.0128, r2:0.982, params:"2.8M",  year:2023 },
+  { model:"CNN-Cavity",      type:"CNN",        dataset:"LidCavity",  target:"pressure", l1:0.0214, r2:0.964, params:"5.5M",  year:2022 },
+
+  // Cylinder Flow
+  { model:"TemporalGNN",     type:"GNN",        dataset:"Cylinder",   target:"velocity", l1:0.0078, r2:0.992, params:"3.4M",  year:2024 },
+  { model:"Transolver-T",    type:"Transolver",  dataset:"Cylinder",   target:"velocity", l1:0.0061, r2:0.994, params:"12.0M", year:2024 },
+  { model:"PointNet-Cyl",    type:"PointNet++",  dataset:"Cylinder",   target:"wss",      l1:0.0210, r2:0.962, params:"5.9M",  year:2023 },
+];
+
+// ════════════════════════════════════════════════════════
+//  COLOUR HELPERS
+// ════════════════════════════════════════════════════════
+const TYPE_COLORS = {
+  "GNN":        { bg:"rgba(21,101,192,0.15)", border:"#1565c0" },
+  "Transolver": { bg:"rgba(106,27,154,0.15)", border:"#6a1b9a" },
+  "PointNet++": { bg:"rgba(46,125,50,0.15)",  border:"#2e7d32" },
+  "CNN":        { bg:"rgba(230,81,0,0.15)",   border:"#e65100" },
+  "FNO":        { bg:"rgba(136,14,79,0.15)",  border:"#880e4f" },
+};
+
+const TYPE_BADGE = {
+  "GNN":        "badge-gnn",
+  "Transolver": "badge-transolver",
+  "PointNet++": "badge-pointnet",
+  "CNN":        "badge-cnn",
+  "FNO":        "badge-fno",
+};
+
+function typeColor(t) {
+  return TYPE_COLORS[t] || { bg:"rgba(100,100,100,0.1)", border:"#666" };
+}
+
+// ════════════════════════════════════════════════════════
+//  FILTER STATE
+// ════════════════════════════════════════════════════════
+function getActiveDataset() {
+  const checked = document.querySelector('input[name="dataset"]:checked');
+  return checked ? checked.value : "all";
+}
+
+function getActiveTypes() {
+  return ["GNN","Transolver","PointNet++","CNN","FNO"].filter(t => {
+    const id = { "GNN":"mt-gnn","Transolver":"mt-transolver","PointNet++":"mt-pointnet","CNN":"mt-cnn","FNO":"mt-fno" }[t];
+    return document.getElementById(id)?.checked;
+  });
+}
+
+function getActiveTargets() {
+  const tgts = [];
+  if (document.getElementById("tv-pressure")?.checked) tgts.push("pressure");
+  if (document.getElementById("tv-velocity")?.checked) tgts.push("velocity");
+  if (document.getElementById("tv-wss")?.checked)      tgts.push("wss");
+  return tgts;
+}
+
+function getActiveYears() {
+  const yrs = [];
+  if (document.getElementById("yr-2024")?.checked) yrs.push(2024);
+  if (document.getElementById("yr-2023")?.checked) yrs.push(2023);
+  if (document.getElementById("yr-2022")?.checked) yrs.push(2022);
+  return yrs;
+}
+
+function getSearchQuery() {
+  return (document.getElementById("table-search")?.value || "").toLowerCase().trim();
+}
+
+function filteredEntries() {
+  const ds    = getActiveDataset();
+  const types = getActiveTypes();
+  const tgts  = getActiveTargets();
+  const yrs   = getActiveYears();
+  const q     = getSearchQuery();
+
+  return ALL_ENTRIES.filter(e => {
+    if (ds !== "all" && e.dataset !== ds) return false;
+    if (!types.includes(e.type))          return false;
+    if (!tgts.includes(e.target))         return false;
+    if (!yrs.includes(e.year))            return false;
+    if (q && !e.model.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  TABLE RENDERING
+// ════════════════════════════════════════════════════════
+let sortCol = "l1", sortDir = 1; // 1 = asc
+
+function renderTable() {
+  const entries = filteredEntries();
+
+  // Sort
+  const sorted = [...entries].sort((a, b) => {
+    let va = a[sortCol], vb = b[sortCol];
+    if (typeof va === "string") return sortDir * va.localeCompare(vb);
+    return sortDir * (va - vb);
+  });
+
+  // Assign ranks (by L1 ascending, within filtered set)
+  const byL1 = [...entries].sort((a,b) => a.l1 - b.l1);
+  const rankMap = new Map(byL1.map((e,i) => [e.model + e.dataset, i+1]));
+
+  const tbody = document.getElementById("leaderboard-body");
+  tbody.innerHTML = "";
+
+  const maxL1 = Math.max(...entries.map(e=>e.l1), 0.001);
+
+  sorted.forEach(e => {
+    const rank = rankMap.get(e.model + e.dataset) || "-";
+    const rankClass = rank === 1 ? "rank-1" : rank === 2 ? "rank-2" : rank === 3 ? "rank-3" : "rank-other";
+    const l1Pct = Math.round((e.l1 / maxL1) * 100);
+    const r2Pct = Math.round(e.r2 * 100);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+      <td><strong>${e.model}</strong></td>
+      <td><span class="model-type-badge ${TYPE_BADGE[e.type]}">${e.type}</span></td>
+      <td>${e.dataset}</td>
+      <td style="text-transform:capitalize">${e.target}</td>
+      <td>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar" style="width:${l1Pct}%"></div>
+          <span>${e.l1.toFixed(4)}</span>
+        </div>
+      </td>
+      <td>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar bar-r2" style="width:${r2Pct}%"></div>
+          <span>${e.r2.toFixed(3)}</span>
+        </div>
+      </td>
+      <td>${e.params}</td>
+      <td>${e.year}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const noResults = document.getElementById("no-results");
+  noResults.style.display = sorted.length === 0 ? "block" : "none";
+
+  document.getElementById("stat-submissions").textContent = entries.length;
+}
+
+// Column header click sorting
+document.querySelectorAll("#leaderboard-table thead th[data-col]").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.col;
+    if (sortCol === col) {
+      sortDir *= -1;
+    } else {
+      sortCol = col;
+      sortDir = 1;
+    }
+    document.querySelectorAll("#leaderboard-table thead th").forEach(h => {
+      h.classList.remove("sort-asc","sort-desc");
+    });
+    th.classList.add(sortDir === 1 ? "sort-asc" : "sort-desc");
+    renderTable();
+  });
+});
+
+// Sort metric select
+document.getElementById("sort-metric").addEventListener("change", function() {
+  sortCol = this.value;
+  sortDir = this.value === "r2" ? -1 : 1;
+  renderTable();
+});
+
+// ════════════════════════════════════════════════════════
+//  CHARTS
+// ════════════════════════════════════════════════════════
+const DATASETS_ORDER = ["AhmedBody","DrivAer","NACA","LidCavity","Cylinder"];
+const TYPES_ORDER    = ["GNN","Transolver","PointNet++","CNN","FNO"];
+
+let chartL1, chartR2, chartEpoch, chartScatter;
+
+function buildDatasets_BarL1(entries) {
+  return TYPES_ORDER.map(type => {
+    const byDataset = DATASETS_ORDER.map(ds => {
+      const hits = entries.filter(e => e.type === type && e.dataset === ds);
+      return hits.length ? (hits.reduce((s,e)=>s+e.l1, 0)/hits.length) : null;
+    });
+    const c = typeColor(type);
+    return {
+      label: type,
+      data: byDataset,
+      backgroundColor: c.bg,
+      borderColor: c.border,
+      borderWidth: 2,
+      borderRadius: 4,
+    };
+  }).filter(ds => ds.data.some(v=>v!==null));
+}
+
+function buildDatasets_BarR2(entries) {
+  return TYPES_ORDER.map(type => {
+    const byDataset = DATASETS_ORDER.map(ds => {
+      const hits = entries.filter(e => e.type === type && e.dataset === ds);
+      return hits.length ? (hits.reduce((s,e)=>s+e.r2, 0)/hits.length) : null;
+    });
+    const c = typeColor(type);
+    return {
+      label: type,
+      data: byDataset,
+      backgroundColor: c.bg,
+      borderColor: c.border,
+      borderWidth: 2,
+      borderRadius: 4,
+    };
+  }).filter(ds => ds.data.some(v=>v!==null));
+}
+
+// Simulated epoch data (training curves)
+const EPOCH_LABELS = [1,5,10,20,30,50,75,100];
+const EPOCH_DATA = {
+  "GNN":        [0.18, 0.11, 0.072, 0.045, 0.032, 0.022, 0.018, 0.015],
+  "Transolver": [0.15, 0.09, 0.055, 0.031, 0.020, 0.013, 0.010, 0.009],
+  "PointNet++": [0.20, 0.14, 0.095, 0.060, 0.044, 0.033, 0.027, 0.023],
+  "CNN":        [0.22, 0.16, 0.115, 0.080, 0.062, 0.051, 0.046, 0.043],
+  "FNO":        [0.19, 0.12, 0.082, 0.053, 0.040, 0.030, 0.025, 0.022],
+};
+
+function buildDatasets_Epoch(entries) {
+  const activeTypes = [...new Set(entries.map(e=>e.type))];
+  return activeTypes.map(type => {
+    const c = typeColor(type);
+    return {
+      label: type,
+      data: EPOCH_DATA[type] || [],
+      borderColor: c.border,
+      backgroundColor: c.bg,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+    };
+  });
+}
+
+function buildDatasets_Scatter(entries) {
+  // Simulated inference times (ms)
+  const inferTime = {
+    "GNN":9.2, "Transolver":18.4, "PointNet++":12.1, "CNN":5.8, "FNO":7.3,
+  };
+  const activeTypes = [...new Set(entries.map(e=>e.type))];
+  return activeTypes.map(type => {
+    const hits = entries.filter(e=>e.type===type);
+    const avgL1 = hits.reduce((s,e)=>s+e.l1,0)/(hits.length||1);
+    const c = typeColor(type);
+    return {
+      label: type,
+      data: [{ x: inferTime[type]||10, y: avgL1 }],
+      backgroundColor: c.border,
+      borderColor: c.border,
+      pointRadius: 9,
+      pointHoverRadius: 12,
+    };
+  });
+}
+
+const CHART_OPTS_BASE = {
+  responsive: true,
+  animation: { duration: 400 },
+  plugins: { legend: { position:"top", labels:{ boxWidth:12, font:{size:11} } } },
+};
+
+function initCharts() {
+  chartL1 = new Chart(document.getElementById("chartL1"), {
+    type: "bar",
+    data: { labels: DATASETS_ORDER, datasets: [] },
+    options: {
+      ...CHART_OPTS_BASE,
+      scales: {
+        y: { title:{ display:true, text:"Avg L1 Error" }, beginAtZero:true },
+      },
+    },
+  });
+
+  chartR2 = new Chart(document.getElementById("chartR2"), {
+    type: "bar",
+    data: { labels: DATASETS_ORDER, datasets: [] },
+    options: {
+      ...CHART_OPTS_BASE,
+      scales: {
+        y: { title:{ display:true, text:"Avg R² Score" }, min:0.8, max:1 },
+      },
+    },
+  });
+
+  chartEpoch = new Chart(document.getElementById("chartEpoch"), {
+    type: "line",
+    data: { labels: EPOCH_LABELS, datasets: [] },
+    options: {
+      ...CHART_OPTS_BASE,
+      scales: {
+        x: { title:{ display:true, text:"Epoch" } },
+        y: { title:{ display:true, text:"L1 Error" }, beginAtZero:true },
+      },
+    },
+  });
+
+  chartScatter = new Chart(document.getElementById("chartScatter"), {
+    type: "scatter",
+    data: { datasets: [] },
+    options: {
+      ...CHART_OPTS_BASE,
+      scales: {
+        x: { title:{ display:true, text:"Inference Time (ms)" }, beginAtZero:true },
+        y: { title:{ display:true, text:"Avg L1 Error" }, beginAtZero:true },
+      },
+      plugins: {
+        ...CHART_OPTS_BASE.plugins,
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: L1=${ctx.raw.y.toFixed(4)}, t=${ctx.raw.x}ms`,
+          },
+        },
+      },
+    },
+  });
+}
+
+function updateCharts() {
+  const entries = filteredEntries();
+
+  chartL1.data.datasets    = buildDatasets_BarL1(entries);
+  chartR2.data.datasets    = buildDatasets_BarR2(entries);
+  chartEpoch.data.datasets = buildDatasets_Epoch(entries);
+  chartScatter.data.datasets = buildDatasets_Scatter(entries);
+
+  chartL1.update();
+  chartR2.update();
+  chartEpoch.update();
+  chartScatter.update();
+}
+
+// ════════════════════════════════════════════════════════
+//  EVENT WIRING
+// ════════════════════════════════════════════════════════
+function onFilterChange() {
+  renderTable();
+  updateCharts();
+}
+
+document.querySelectorAll("#dataset-filters input").forEach(el => {
+  el.addEventListener("change", onFilterChange);
+});
+
+document.getElementById("table-search").addEventListener("input", onFilterChange);
+
+document.getElementById("reset-filters").addEventListener("click", () => {
+  document.getElementById("ds-all").checked = true;
+  ["mt-gnn","mt-transolver","mt-pointnet","mt-cnn","mt-fno",
+   "tv-pressure","tv-velocity","tv-wss",
+   "yr-2024","yr-2023","yr-2022"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = true;
+  });
+  document.getElementById("table-search").value = "";
+  document.getElementById("sort-metric").value = "l1";
+  sortCol = "l1"; sortDir = 1;
+  onFilterChange();
+});
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+initCharts();
+onFilterChange();
+</script>
+</body>
+</html>
