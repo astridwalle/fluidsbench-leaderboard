@@ -129,14 +129,20 @@
       font-weight: 800;
       color: var(--kaggle-blue);
       margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .hero-card .hero-tags {
+      text-align: center;
     }
 
     .hero-card p {
       font-size: 0.93rem;
       color: #c8d6e5;
-      max-width: 760px;
+      max-width: 100%;
       line-height: 1.65;
       margin-bottom: 0;
+      text-align: center;
     }
 
     .hero-card .badge-tag {
@@ -526,18 +532,18 @@
     <!-- Hero -->
     <div class="hero-card">
       <h1>⚡ FluidsBench Leaderboard</h1>
-      <div class="mb-2">
+      <div class="mb-2 hero-tags">
         <span class="badge-tag">CFD</span>
         <span class="badge-tag">Surrogate Models</span>
         <span class="badge-tag">Geometric Deep Learning</span>
         <span class="badge-tag">Open Benchmark</span>
       </div>
       <p>
-        <strong>FluidsBench</strong> is an open benchmark for evaluating machine learning surrogate models
-        on computational fluid dynamics (CFD) tasks. It provides standardised datasets, evaluation protocols,
-        and this leaderboard to enable fair, reproducible comparison of methods across diverse flow scenarios —
-        from external aerodynamics to internal pipe flows.
-        Datasets are sourced from <a href="https://caemldatasets.org" target="_blank" style="color:var(--kaggle-blue)">CaEMLDatasets.org</a>.
+        <strong>FluidsBench</strong> is an open benchmark for CFD surrogate models, designed to accelerate
+        foundational AI for fluids — inspired by efforts like WeatherBench 2. It provides training data via
+        external model hubs (e.g.&nbsp;HuggingFace), an open evaluation framework, and this continuously updated
+        leaderboard. Workshops at major venues (NeurIPS, ICML, ML4Fluids) foster community direction, guided by
+        an academic &amp; industrial advisory board ensuring relevance across all fluid dynamics sectors.
       </p>
     </div>
 
