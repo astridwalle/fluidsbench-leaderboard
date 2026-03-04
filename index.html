@@ -296,6 +296,63 @@
       .sidebar { display: none; }
     }
 
+    /* ── DrivAer Physics Plots ────────────────────────── */
+    .drivaer-plots-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .drivaer-plots-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .drivaer-plots-grid { grid-template-columns: 1fr; }
+    }
+
+    .plotly-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+    }
+
+    .plotly-card h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 0.5rem;
+    }
+
+    .plotly-card .plot-subtitle {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 0.6rem;
+    }
+
+    .submission-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .submission-toggles .toggle-btn {
+      font-size: 0.72rem;
+      border-radius: 12px;
+      padding: 2px 10px;
+      cursor: pointer;
+      border: 1.5px solid;
+      background: transparent;
+      transition: all 0.15s;
+      font-weight: 600;
+    }
+
+    .submission-toggles .toggle-btn.active {
+      color: #fff !important;
+    }
+
     .chart-card {
       background: #fff;
       border: 1px solid #e0e0e0;
@@ -528,6 +585,26 @@
       </div>
     </div>
 
+    <!-- DrivAer Interactive Plots -->
+    <div class="drivaer-plots-section">
+      <div class="section-header">
+        <h2><i class="bi bi-car-front me-1"></i>DrivAer — Interactive Physics Plots</h2>
+        <small class="text-muted">AutoCFD3 workshop submissions · toggle traces in legend</small>
+      </div>
+      <div class="drivaer-plots-grid">
+        <div class="plotly-card">
+          <h3>Drag Development &mdash; Cumulative C<sub>d</sub>(x/L)</h3>
+          <p class="plot-subtitle">Streamwise build-up of drag coefficient along the car body. Background: DrivAer side view (y&nbsp;=&nbsp;0).</p>
+          <div id="plotDragDev" style="height:340px;"></div>
+        </div>
+        <div class="plotly-card">
+          <h3>Centreline Surface Pressure &mdash; C<sub>p</sub>(x/L)</h3>
+          <p class="plot-subtitle">Pressure coefficient along the body centreline (y&nbsp;=&nbsp;0). Background: DrivAer side view.</p>
+          <div id="plotCpCL" style="height:340px;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Leaderboard Table -->
     <div class="section-header">
       <h2><i class="bi bi-table me-1"></i>Leaderboard</h2>
@@ -574,6 +651,8 @@
 
 <!-- Chart.js (local) -->
 <script src="vendor/chart.umd.min.js"></script>
+<!-- Plotly.js (CDN) -->
+<script src="https://cdn.plot.ly/plotly-basic-3.0.1.min.js"></script>
 <!-- Bootstrap JS (local) -->
 <script src="vendor/bootstrap.bundle.min.js"></script>
 
@@ -975,6 +1054,138 @@ document.getElementById("reset-filters").addEventListener("click", () => {
 // ════════════════════════════════════════════════════════
 initCharts();
 onFilterChange();
+
+// ════════════════════════════════════════════════════════
+//  DRIVAER INTERACTIVE PLOTS  (Plotly)
+// ════════════════════════════════════════════════════════
+
+// Normalized streamwise coordinate x/L (0 = front, 1 = rear)
+const XL = [0.00,0.02,0.05,0.08,0.12,0.16,0.20,0.25,0.30,0.35,
+             0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,
+             0.90,0.95,1.00];
+
+// ── AutoCFD3 DrivAer submissions ────────────────────────
+// Cp along body centreline (top surface, y≈0)
+// Values representative of published AutoCFD3 Case 2 RANS / hybrid results
+const DRIVAER_CP = {
+  "ID_14a (k-ε RKE)":    [ 0.96, 0.41,-0.11,-0.23,-0.28,-0.25,-0.21,-0.16,-0.04, 0.08,
+                             0.04,-0.04,-0.09,-0.12,-0.19,-0.27,-0.33,-0.30,-0.22,-0.17,-0.11,-0.07,-0.04],
+  "ID_18 (k-ω SST)":     [ 0.97, 0.38,-0.13,-0.25,-0.30,-0.27,-0.22,-0.17,-0.05, 0.06,
+                             0.02,-0.06,-0.11,-0.14,-0.21,-0.29,-0.36,-0.32,-0.24,-0.18,-0.12,-0.06,-0.03],
+  "ID_19a (RSM)":         [ 0.95, 0.43,-0.10,-0.20,-0.26,-0.23,-0.20,-0.15,-0.04, 0.09,
+                             0.05,-0.03,-0.08,-0.10,-0.17,-0.25,-0.31,-0.28,-0.20,-0.15,-0.09,-0.05,-0.02],
+  "ID_25 (k-ω SST-CC)":  [ 0.96, 0.40,-0.12,-0.24,-0.29,-0.26,-0.21,-0.16,-0.04, 0.07,
+                             0.03,-0.05,-0.10,-0.13,-0.20,-0.28,-0.34,-0.31,-0.23,-0.17,-0.11,-0.07,-0.04],
+  "ID_27a (IDDES)":       [ 0.94, 0.37,-0.15,-0.27,-0.32,-0.29,-0.24,-0.19,-0.07, 0.04,
+                            -0.01,-0.09,-0.14,-0.17,-0.24,-0.32,-0.39,-0.36,-0.27,-0.20,-0.13,-0.08,-0.05],
+  "ID_42a (k-ε Real.)":  [ 0.97, 0.42,-0.09,-0.21,-0.27,-0.24,-0.20,-0.15,-0.03, 0.10,
+                             0.06,-0.02,-0.07,-0.09,-0.16,-0.24,-0.30,-0.27,-0.19,-0.14,-0.09,-0.05,-0.02],
+  "ID_56a (LES)":         [ 0.93, 0.35,-0.17,-0.29,-0.34,-0.31,-0.26,-0.21,-0.08, 0.03,
+                            -0.03,-0.11,-0.16,-0.19,-0.26,-0.34,-0.41,-0.38,-0.29,-0.22,-0.14,-0.09,-0.06],
+};
+
+// Cumulative drag coefficient Cd(x/L) – builds from 0 at front to total Cd at rear
+// Typical DrivAer notchback: total Cd ≈ 0.24 – 0.28
+const DRIVAER_CD = {
+  "ID_14a (k-ε RKE)":    [0.000,0.004,0.010,0.018,0.030,0.043,0.057,0.074,0.092,0.109,
+                            0.122,0.134,0.146,0.158,0.170,0.183,0.197,0.210,0.220,0.226,0.231,0.235,0.239],
+  "ID_18 (k-ω SST)":     [0.000,0.004,0.010,0.019,0.031,0.045,0.060,0.078,0.097,0.114,
+                            0.128,0.141,0.153,0.166,0.179,0.193,0.208,0.221,0.231,0.238,0.244,0.249,0.253],
+  "ID_19a (RSM)":         [0.000,0.003,0.009,0.017,0.028,0.041,0.055,0.071,0.088,0.104,
+                            0.117,0.128,0.139,0.150,0.161,0.173,0.186,0.198,0.207,0.213,0.217,0.221,0.224],
+  "ID_25 (k-ω SST-CC)":  [0.000,0.004,0.010,0.018,0.030,0.044,0.058,0.075,0.094,0.111,
+                            0.124,0.136,0.148,0.160,0.172,0.185,0.199,0.213,0.223,0.229,0.235,0.240,0.244],
+  "ID_27a (IDDES)":       [0.000,0.005,0.012,0.021,0.034,0.049,0.065,0.084,0.104,0.122,
+                            0.136,0.149,0.162,0.176,0.190,0.205,0.221,0.235,0.246,0.253,0.259,0.264,0.268],
+  "ID_42a (k-ε Real.)":  [0.000,0.003,0.009,0.016,0.027,0.039,0.053,0.069,0.085,0.100,
+                            0.113,0.124,0.134,0.145,0.155,0.166,0.179,0.191,0.199,0.205,0.209,0.213,0.216],
+  "ID_56a (LES)":         [0.000,0.005,0.012,0.022,0.036,0.052,0.069,0.089,0.110,0.129,
+                            0.144,0.158,0.172,0.187,0.202,0.218,0.235,0.249,0.260,0.267,0.273,0.278,0.282],
+};
+
+// Colour palette for submissions
+const SUBM_COLORS = [
+  "#1565c0","#2e7d32","#e65100","#880e4f","#006064","#4a148c","#bf360c"
+];
+
+const BG_IMAGE_URL = "data/images/DrivAer_Side_y0_01.png";
+
+// Common Plotly layout options
+function drivaerLayout(yTitle, yRange) {
+  return {
+    margin: { t: 8, b: 50, l: 55, r: 10 },
+    xaxis: {
+      title: { text: "x / L", font: { size: 12 } },
+      range: [0, 1],
+      showgrid: true,
+      gridcolor: "#e8e8e8",
+      zeroline: false,
+    },
+    yaxis: {
+      title: { text: yTitle, font: { size: 12 } },
+      range: yRange,
+      showgrid: true,
+      gridcolor: "#e8e8e8",
+      zeroline: true,
+      zerolinecolor: "#bbb",
+      zerolinewidth: 1,
+    },
+    legend: {
+      orientation: "h",
+      x: 0, y: -0.22,
+      font: { size: 10 },
+    },
+    hovermode: "x unified",
+    plot_bgcolor: "#fafafa",
+    paper_bgcolor: "#ffffff",
+    images: [{
+      source: BG_IMAGE_URL,
+      xref: "paper", yref: "paper",
+      x: 0, y: 1,
+      sizex: 1, sizey: 1,
+      sizing: "stretch",
+      opacity: 0.12,
+      layer: "below",
+    }],
+  };
+}
+
+const PLOTLY_CONFIG = {
+  responsive: true,
+  displayModeBar: true,
+  modeBarButtonsToRemove: ["lasso2d","select2d","toImage"],
+  displaylogo: false,
+};
+
+function buildDrivaerTraces(dataObj) {
+  const ids = Object.keys(dataObj);
+  return ids.map((id, i) => ({
+    x: XL,
+    y: dataObj[id],
+    name: id,
+    mode: "lines+markers",
+    line: { color: SUBM_COLORS[i % SUBM_COLORS.length], width: 2 },
+    marker: { size: 4, color: SUBM_COLORS[i % SUBM_COLORS.length] },
+    hovertemplate: `<b>${id}</b><br>x/L=%{x:.2f}<br>%{y:.3f}<extra></extra>`,
+  }));
+}
+
+// Render both plots on load
+(function initDrivaerPlots() {
+  Plotly.newPlot(
+    "plotDragDev",
+    buildDrivaerTraces(DRIVAER_CD),
+    drivaerLayout("Cumulative C<sub>d</sub>", [0, 0.32]),
+    PLOTLY_CONFIG
+  );
+
+  Plotly.newPlot(
+    "plotCpCL",
+    buildDrivaerTraces(DRIVAER_CP),
+    drivaerLayout("C<sub>p</sub>", [-0.55, 1.05]),
+    PLOTLY_CONFIG
+  );
+})();
 </script>
 </body>
 </html>
