@@ -416,6 +416,11 @@
 </head>
 <body>
 
+<!-- ── Mockup Disclaimer ─────────────────────────────────── -->
+<div style="background:#fff3cd;border-bottom:2px solid #ffc107;padding:1rem 1.5rem;text-align:center;font-size:1.05rem;color:#664d03;">
+  <strong>⚠️ Mockup &amp; Demo:</strong> This leaderboard is currently a prototype with artificial example data. Results do not reflect real model evaluations.
+</div>
+
 <!-- ── Top Navigation ──────────────────────────────────── -->
 <nav class="topnav">
   <a class="brand" href="#">⚡ FluidsBench</a>
@@ -593,6 +598,7 @@
             <th data-col="r2">R² Score ↑ <i class="bi bi-chevron-expand sort-icon"></i></th>
             <th data-col="params">Params <i class="bi bi-chevron-expand sort-icon"></i></th>
             <th data-col="year">Year <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th data-col="pid">Participant ID <i class="bi bi-chevron-expand sort-icon"></i></th>
           </tr>
         </thead>
         <tbody id="leaderboard-body"></tbody>
@@ -706,6 +712,20 @@ const ALL_ENTRIES = [
   { model:"Transolver-T",    type:"Transolver",  dataset:"Cylinder",   target:"velocity", l1:0.0061, r2:0.994, params:"12.0M", year:2024 },
   { model:"PointNet-Cyl",    type:"PointNet++",  dataset:"Cylinder",   target:"wss",      l1:0.0210, r2:0.962, params:"5.9M",  year:2023 },
 ];
+
+// Assign deterministic participant IDs (2 letters + 2 digits)
+(function() {
+  const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let s = 31337;
+  const rng = () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
+  ALL_ENTRIES.forEach(e => {
+    const l1 = LETTERS[Math.floor(rng() * 26)];
+    const l2 = LETTERS[Math.floor(rng() * 26)];
+    const n1 = Math.floor(rng() * 10);
+    const n2 = Math.floor(rng() * 10);
+    e.pid = `${l1}${l2}${n1}${n2}`;
+  });
+})();
 
 // ════════════════════════════════════════════════════════
 //  COLOUR HELPERS
@@ -833,6 +853,7 @@ function renderTable() {
       </td>
       <td>${e.params}</td>
       <td>${e.year}</td>
+      <td><code style="font-size:0.82rem;letter-spacing:0.04em;">${e.pid}</code></td>
     `;
     tbody.appendChild(tr);
   });
@@ -1044,6 +1065,13 @@ function onFilterChange() {
   // Show DrivAer physics plots only when DrivAer dataset is selected
   const isDrivaer = getActiveDataset() === "DrivAer";
   document.getElementById("drivaer-plots-section").style.display = isDrivaer ? "" : "none";
+  if (isDrivaer) {
+    initDrivaerPlots();
+    requestAnimationFrame(() => {
+      Plotly.Plots.resize(document.getElementById("plotDragDev"));
+      Plotly.Plots.resize(document.getElementById("plotCpCL"));
+    });
+  }
 }
 
 document.querySelectorAll("#dataset-filters input").forEach(el => {
@@ -1131,6 +1159,7 @@ const BG_IMAGE_URL = "data/images/DrivAer_Side_y0_01.png";
 
 function drivaerLayout(yTitle, yRange) {
   return {
+    autosize: true,
     margin: { t: 8, b: 50, l: 55, r: 10 },
     xaxis: {
       title: { text: "x / L", font: { size: 12 } },
@@ -1160,7 +1189,12 @@ const PLOTLY_CONFIG = {
   displaylogo: false,
 };
 
-(function initDrivaerPlots() {
+let drivaerPlotsInitialized = false;
+
+function initDrivaerPlots() {
+  if (drivaerPlotsInitialized) return;
+  drivaerPlotsInitialized = true;
+
   const cdTraces = DRIVAER_MODELS.map((m, i) =>
     buildModelTrace(XL_CD, CD_REF, m.cdScale, 0,         m.cdNoise, i * 997 + 1, m.name, m.color)
   );
@@ -1171,9 +1205,10 @@ const PLOTLY_CONFIG = {
   Plotly.newPlot("plotDragDev", cdTraces,
     drivaerLayout("Cumulative C<sub>d</sub>", [0, 0.32]), PLOTLY_CONFIG);
 
-  Plotly.newPlot("plotCpCL", cpTraces,
-    drivaerLayout("C<sub>p</sub>", [-0.95, 1.10]), PLOTLY_CONFIG);
-})();
+  const cpLayout = drivaerLayout("C<sub>p</sub>", [-0.95, 1.10]);
+  cpLayout.margin.r = 60;
+  Plotly.newPlot("plotCpCL", cpTraces, cpLayout, PLOTLY_CONFIG);
+}
 </script>
 </body>
 </html>
